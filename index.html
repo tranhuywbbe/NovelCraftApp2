@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Xưởng Viết Truyện</title>
+<style>
+:root{--bg:#f3f5f7;--fg:#1c2327;--mut:#66727a;--card:#fff;--bd:#d5dce0;--ac:#0f766e;--acf:#fff;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181b;--fg:#e6eaec;--mut:#8d9aa1;--card:#1d2327;--bd:#333c42;--ac:#5eead4;--acf:#0b1f1c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181b;--fg:#e6eaec;--mut:#8d9aa1;--card:#1d2327;--bd:#333c42;--ac:#5eead4;--acf:#0b1f1c;color-scheme:dark}
+html{height:100%}
+body{margin:0;height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:8px 12px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+main{flex:1;min-height:0;position:relative}
+.p{display:none;position:absolute;inset:0;overflow:auto;padding:12px}
+.p.on{display:block}
+nav{display:flex;border-top:1px solid var(--bd);background:var(--card)}
+nav button{flex:1;padding:12px 0;border:0;background:none;color:var(--mut);font:inherit;font-size:14px}
+nav button.on{color:var(--ac);font-weight:700}
+textarea,input,select{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--fg);font:inherit;margin:4px 0}
+textarea{resize:vertical;min-height:120px}
+#ed{min-height:52vh;line-height:1.75;font-family:Georgia,"Noto Serif",serif;font-size:17px}
+.b{padding:9px 14px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--fg);font:inherit;font-size:14px;margin:3px 3px 3px 0}
+.b.go{background:var(--ac);color:var(--acf);border-color:var(--ac);font-weight:600}
+.b:disabled{opacity:.5}
+.m{padding:9px 12px;border-radius:12px;margin:8px 0;white-space:pre-wrap;word-break:break-word;background:var(--card);border:1px solid var(--bd)}
+.m.u{background:var(--ac);color:var(--acf);margin-left:18%}
+#out{white-space:pre-wrap;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;min-height:60px;margin:8px 0;word-break:break-word}
+small,.h{color:var(--mut);font-size:13px}
+.row{display:flex;gap:6px;align-items:center}
+</style></head><body>
+<header><b>Xưởng Viết Truyện</b><span id="st">Sẵn sàng</span></header>
+<main>
+<section class="p on" id="p0">
+ <div class="row"><select id="chs" onchange="pick(this.value)"></select><button class="b" onclick="addCh()">+ Mới</button></div>
+ <input id="tt" placeholder="Tên chương" oninput="edT()">
+ <textarea id="ed" placeholder="Viết ở đây..." oninput="edX()"></textarea>
+ <small id="wc"></small>
+</section>
+<section class="p" id="p1">
+ <div id="chat"></div>
+ <label class="h"><input type="checkbox" id="wch" style="width:auto"> Kèm chương đang mở</label>
+ <textarea id="ci" placeholder="Hỏi AI về truyện..." style="min-height:70px"></textarea>
+ <button class="b go" id="cs" onclick="send()">Gửi</button>
+ <button class="b" onclick="stop()">Dừng</button>
+ <button class="b" onclick="S.chat=[];rc()">Xóa chat</button>
+</section>
+<section class="p" id="p2">
+ <select id="ps" onchange="sp(this.value)"></select>
+ <input id="pn" placeholder="Tên prompt" oninput="ep()">
+ <textarea id="pb" placeholder="Nội dung prompt" style="min-height:170px" oninput="ep()"></textarea>
+ <small>Dùng <b>{{chuong}}</b> để chèn chương đang mở, <b>{{ghi_chu}}</b> để chèn ô ghi chú bên dưới. Hồ sơ truyện luôn được gửi kèm.</small>
+ <textarea id="gc" placeholder="Ghi chú hoặc dàn ý cho lần chạy này" style="min-height:70px"></textarea>
+ <button class="b go" id="run" onclick="runP()">Chạy prompt</button>
+ <button class="b" onclick="stop()">Dừng</button>
+ <button class="b" onclick="newP()">Prompt mới</button>
+ <button class="b" onclick="delP()">Xóa prompt</button>
+ <div id="out">Kết quả sẽ hiện ở đây.</div>
+ <button class="b" onclick="ap('rep')">Thay vào chương</button>
+ <button class="b" onclick="ap('add')">Chèn cuối chương</button>
+ <button class="b" onclick="ap('bib')">Thêm vào hồ sơ</button>
+ <button class="b" onclick="ap('cp')">Sao chép</button>
+</section>
+<section class="p" id="p3">
+ <small>Hồ sơ truyện (Story Bible) được gửi kèm mọi yêu cầu dưới dạng chỉ dẫn hệ thống, nên AI luôn nhớ. Dán nội dung hồ sơ vào đây.</small>
+ <textarea id="bi" style="min-height:70vh" oninput="eb()"></textarea>
+ <small id="bc"></small>
+</section>
+<section class="p" id="p4">
+ <label class="h">Nhà cung cấp AI</label>
+ <select id="cp" onchange="cf()"><option value="gem">Google Gemini (khóa miễn phí từ AI Studio)</option><option value="oai">Tương thích OpenAI (OpenRouter, DeepSeek, Groq...)</option></select>
+ <div id="cu"><label class="h">Địa chỉ API</label><input id="cuu" placeholder="https://openrouter.ai/api/v1" oninput="cf()"></div>
+ <label class="h">Tên model</label><input id="cm" placeholder="gemini-2.5-flash" oninput="cf()" autocapitalize="off">
+ <label class="h">Khóa API</label><input id="ck" type="password" placeholder="Dán khóa API" oninput="cf()" autocapitalize="off">
+ <small>Khóa chỉ lưu trên máy này. Với khóa Gemini miễn phí, Google có thể dùng nội dung gửi đi để cải thiện sản phẩm của họ. Kiểm tra tên model còn miễn phí trong AI Studio.</small>
+ <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+ <button class="b go" onclick="exp()">Xuất sao lưu</button>
+ <label class="b" style="display:inline-block">Nhập sao lưu<input type="file" accept=".json" onchange="imp(this)" hidden></label>
+ <p><small>Dữ liệu nằm trong trình duyệt của máy. Hãy xuất sao lưu sau mỗi vài chương, vì xóa dữ liệu trình duyệt sẽ mất hết.</small></p>
+</section>
+</main>
+<nav><button class="on" onclick="tab(0)">Viết</button><button onclick="tab(1)">Chat</button><button onclick="tab(2)">Prompt</button><button onclick="tab(3)">Hồ sơ</button><button onclick="tab(4)">Cài đặt</button></nav>
+<script>
+const $=s=>document.getElementById(s);
+const DP=[
+{n:'Biên tập chương',b:'Hãy biên tập chương dưới đây. Soát lỗi chính tả, câu rườm hoặc lặp, chỗ mâu thuẫn với hồ sơ truyện. Giữ nguyên tình tiết và giọng văn của tác giả. Trả về hai phần: 1) Danh sách chỗ cần sửa, mỗi mục một dòng ngắn; 2) Bản chương đã chỉnh hoàn chỉnh.\n\n{{chuong}}'},
+{n:'Tóm tắt và cập nhật hồ sơ',b:'Đọc chương dưới và chỉ liệt kê phần cần THÊM hoặc SỬA trong hồ sơ truyện, theo mục: Tóm tắt chương (5 đến 8 câu), Nhân vật mới hoặc thay đổi, Địa danh và thiết lập mới, Chỉ số và kỹ năng, Phục bút mới hoặc đã giải, Mâu thuẫn với hồ sơ cũ. Nếu chương khác hồ sơ thì theo chương. Không chép lại phần hồ sơ không đổi.\n\n{{chuong}}'},
+{n:'Gợi ý dàn ý',b:'Dựa vào hồ sơ truyện và diễn biến mới nhất, gợi ý dàn ý cho các chương tiếp theo. Ghi chú của tác giả: {{ghi_chu}}\nMỗi chương gồm: tên gợi ý, sự kiện chính, nhân vật xuất hiện, điểm nhấn cuối chương. Đưa 2 hướng khác nhau nếu được.'},
+{n:'Viết theo dàn ý',b:'Viết trọn một chương theo dàn ý sau, đúng giọng văn, tên riêng và thiết lập trong hồ sơ, khoảng 3000 từ nếu ghi chú không nói khác.\nDàn ý: {{ghi_chu}}\n\nChương liền trước (để nối mạch):\n{{chuong}}'}];
+let S={bible:'',prompts:DP.map(x=>({...x})),chs:[{t:'Chương 1',x:''}],cur:0,pi:0,chat:[],out:'',cfg:{p:'gem',u:'https://openrouter.ai/api/v1',m:'gemini-2.5-flash',k:''}},ctl=null,tm=null;
+const st=t=>$('st').textContent=t;
+function save(){clearTimeout(tm);st('Đang lưu...');tm=setTimeout(()=>{try{localStorage.setItem('xvt1',JSON.stringify({bible:S.bible,prompts:S.prompts,chs:S.chs,cur:S.cur,cfg:S.cfg}));st('Đã lưu')}catch(e){st('Không lưu được: hãy xuất sao lưu')}},500)}
+try{const d=JSON.parse(localStorage.getItem('xvt1')||'null');if(d){S.bible=d.bible||'';if(d.prompts&&d.prompts.length)S.prompts=d.prompts;if(d.chs&&d.chs.length)S.chs=d.chs;S.cur=Math.min(d.cur||0,S.chs.length-1);S.cfg=Object.assign(S.cfg,d.cfg||{})}}catch(e){}
+function tab(i){document.querySelectorAll('.p').forEach((e,j)=>e.classList.toggle('on',i==j));document.querySelectorAll('nav button').forEach((e,j)=>e.classList.toggle('on',i==j))}
+const esc=s=>(s||'').replace(/</g,'&lt;');
+/* Viết */
+function rw(){$('chs').innerHTML=S.chs.map((c,i)=>'<option value="'+i+'"'+(i==S.cur?' selected':'')+'>'+(i+1)+'. '+esc(c.t)+'</option>').join('');const c=S.chs[S.cur];$('tt').value=c.t;$('ed').value=c.x;wc()}
+function wc(){const x=S.chs[S.cur].x.trim();$('wc').textContent=(x?x.split(/\s+/).length:0)+' từ, '+x.length+' ký tự'}
+function pick(v){S.cur=+v;rw();save()}
+function edT(){S.chs[S.cur].t=$('tt').value;save()}
+function edX(){S.chs[S.cur].x=$('ed').value;wc();save()}
+function addCh(){S.chs.push({t:'Chương '+(S.chs.length+1),x:''});S.cur=S.chs.length-1;rw();save()}
+/* Hồ sơ */
+function rb(){$('bi').value=S.bible;$('bc').textContent=S.bible.length+' ký tự'}
+function eb(){S.bible=$('bi').value;$('bc').textContent=S.bible.length+' ký tự';save()}
+/* Prompt */
+function rp(){$('ps').innerHTML=S.prompts.map((p,i)=>'<option value="'+i+'"'+(i==S.pi?' selected':'')+'>'+esc(p.n)+'</option>').join('');const p=S.prompts[S.pi];$('pn').value=p?p.n:'';$('pb').value=p?p.b:''}
+function sp(v){S.pi=+v;rp()}
+function ep(){const p=S.prompts[S.pi];if(!p)return;p.n=$('pn').value;p.b=$('pb').value;save()}
+function newP(){S.prompts.push({n:'Prompt mới',b:''});S.pi=S.prompts.length-1;rp();save()}
+function delP(){if(S.prompts.length<2||!confirm('Xóa prompt này?'))return;S.prompts.splice(S.pi,1);S.pi=0;rp();save()}
+/* Cài đặt */
+function rs(){const c=S.cfg;$('cp').value=c.p;$('cuu').value=c.u;$('cm').value=c.m;$('ck').value=c.k;$('cu').style.display=c.p=='oai'?'block':'none'}
+function cf(){const c=S.cfg;c.p=$('cp').value;c.u=$('cuu').value.trim();c.m=$('cm').value.trim();c.k=$('ck').value.trim();$('cu').style.display=c.p=='oai'?'block':'none';save()}
+function exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({bible:S.bible,prompts:S.prompts,chs:S.chs,cur:S.cur})],{type:'application/json'}));a.download='xuong-viet-sao-luu-'+new Date().toISOString().slice(0,10)+'.json';a.click();st('Đã xuất sao lưu')}
+function imp(el){const f=el.files[0];if(!f||!confirm('Nhập sao lưu sẽ thay toàn bộ dữ liệu hiện tại. Tiếp tục?'))return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);S.bible=d.bible||'';if(d.prompts&&d.prompts.length)S.prompts=d.prompts;if(d.chs&&d.chs.length)S.chs=d.chs;S.cur=Math.min(d.cur||0,S.chs.length-1);rw();rb();rp();save()}catch(e){st('File sao lưu không hợp lệ')}};r.readAsText(f)}
+/* AI */
+async function ask(msgs,on){
+ const c=S.cfg;if(!c.k)throw{message:'Chưa nhập khóa API trong tab Cài đặt.'};
+ const sys=(S.bible?'[HỒ SƠ TRUYỆN, luôn tuân thủ. Khi bản thảo và hồ sơ khác nhau thì bản thảo là chuẩn]\n'+S.bible+'\n[HẾT HỒ SƠ]\n\n':'')+'Bạn là trợ lý viết tiểu thuyết tiếng Việt. Giữ đúng tên riêng, thiết lập và giọng văn trong hồ sơ.';
+ let url,body,h={'Content-Type':'application/json'};
+ if(c.p=='gem'){url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(c.m)+':streamGenerateContent?alt=sse&key='+encodeURIComponent(c.k);body={systemInstruction:{parts:[{text:sys}]},contents:msgs.map(m=>({role:m.role=='user'?'user':'model',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:8192}}}
+ else{url=c.u.replace(/\/$/,'')+'/chat/completions';h.Authorization='Bearer '+c.k;body={model:c.m,stream:true,messages:[{role:'system',content:sys}].concat(msgs)}}
+ ctl=new AbortController();let acc='';
+ const r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify(body),signal:ctl.signal});
+ if(!r.ok){let t='';try{t=(await r.text()).slice(0,250)}catch(e){}throw{code:r.status,message:'Lỗi '+r.status+(r.status==429?' (hết lượt tạm thời, đợi vài phút)':'')+': '+t}}
+ const rd=r.body.getReader(),dc=new TextDecoder();let buf='';
+ for(;;){const q=await rd.read();if(q.done)break;buf+=dc.decode(q.value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
+  for(const l of ls){if(l.indexOf('data:')!=0)continue;const d=l.slice(5).trim();if(!d||d=='[DONE]')continue;
+   try{const j=JSON.parse(d);const t=c.p=='gem'?((j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts)||[]).map(p=>p.text||'').join(''):((j.choices&&j.choices[0]&&j.choices[0].delta&&j.choices[0].delta.content)||'');if(t){acc+=t;on(acc)}}catch(e){}}}
+ if(!acc)throw{message:'AI không trả về nội dung (có thể bị bộ lọc chặn hoặc sai tên model).'};
+ return acc}
+function stop(){if(ctl)ctl.abort()}
+const err=e=>e&&e.name=='AbortError'?'Đã dừng.':(e&&e.message)||'Lỗi kết nối. Kiểm tra mạng và khóa API.';
+async function runP(){
+ const p=S.prompts[S.pi];if(!p)return;const c=S.chs[S.cur];
+ const t=p.b.split('{{chuong}}').join(c.t+'\n\n'+c.x).split('{{ghi_chu}}').join($('gc').value);
+ $('out').textContent='Đang chạy...';$('run').disabled=true;S.out='';
+ try{S.out=await ask([{role:'user',content:t}],x=>{S.out=x;$('out').textContent=x})}
+ catch(e){$('out').textContent=(S.out?S.out+'\n\n':'')+'['+err(e)+']'}
+ $('run').disabled=false}
+function ap(a){
+ if(!S.out)return;const c=S.chs[S.cur];
+ if(a=='cp'){navigator.clipboard&&navigator.clipboard.writeText(S.out).then(()=>st('Đã sao chép'),()=>st('Không sao chép được'));return}
+ if(a=='rep'){if(!confirm('Thay toàn bộ chương đang mở bằng kết quả này?'))return;c.x=S.out}
+ if(a=='add')c.x=c.x+'\n\n'+S.out;
+ if(a=='bib'){S.bible+='\n\n## Cập nhật sau '+c.t+'\n'+S.out;rb();save();st('Đã thêm vào hồ sơ');return}
+ rw();save();tab(0)}
+/* Chat */
+function rc(){const d=$('chat');d.innerHTML='';S.chat.forEach(m=>{const e=document.createElement('div');e.className='m '+(m.role=='user'?'u':'');e.textContent=m.content;d.appendChild(e)})}
+async function send(){
+ const v=$('ci').value.trim();if(!v)return;const c=S.chs[S.cur];
+ S.chat.push({role:'user',content:v+($('wch').checked?'\n\n[Chương đang mở: '+c.t+']\n'+c.x:'')});
+ const a={role:'assistant',content:'...'};S.chat.push(a);$('ci').value='';rc();$('cs').disabled=true;
+ try{a.content=await ask(S.chat.slice(0,-1),x=>{a.content=x;rc()})}
+ catch(e){a.content=(a.content=='...'?'':a.content+'\n\n')+'['+err(e)+']'}
+ $('cs').disabled=false;rc()}
+rw();rb();rp();rs();rc();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')==0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
